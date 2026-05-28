@@ -13,7 +13,7 @@ class AppConfig {
   // Physical device against local server: use your Mac's LAN IP, e.g. http://192.168.1.x:8000/
   // Android emulator: http://10.0.2.2:8000/
   static String get trackerUrl =>
-      dotenv.env['TRACKER_URL'] ?? 'https://test.fl501st.com/';
+      dotenv.env['TRACKER_URL'] ?? 'https://tracker.fl501st.com/';
 
   // Derived from trackerUrl — no need to change this manually.
   // "test.fl501st.com" → "fl501st.com", "localhost" → "localhost", "192.168.x.x" → the IP.
