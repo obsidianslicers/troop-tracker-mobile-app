@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -15,7 +17,14 @@ void main() async {
 
   await dotenv.load(fileName: '.env');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await PushNotificationService.initialize();
+  // Fire-and-forget: push notification setup (in particular, awaiting the
+  // APNS/FCM token on iOS) can stall well past app launch. It must never
+  // block reaching runApp(), or the app hangs on the splash screen.
+  unawaited(
+    PushNotificationService.initialize().catchError((e) {
+      debugPrint('[FCM] initialize failed: $e');
+    }),
+  );
 
   runApp(const TroopTrackerApp());
 }

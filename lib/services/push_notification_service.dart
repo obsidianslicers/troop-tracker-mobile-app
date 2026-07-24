@@ -26,8 +26,15 @@ class PushNotificationService {
       sound: true,
     );
 
-    currentToken = await messaging.getToken();
-    debugPrint('[FCM] Token: $currentToken');
+    try {
+      currentToken = await messaging.getToken();
+      debugPrint('[FCM] Token: $currentToken');
+    } catch (e) {
+      // On iOS the APNS token may not be registered yet at cold start
+      // (common on simulators / first launch). Don't block app startup —
+      // onTokenRefresh will pick it up once APNs registration completes.
+      debugPrint('[FCM] getToken failed, will retry via onTokenRefresh: $e');
+    }
 
     messaging.onTokenRefresh.listen((token) {
       debugPrint('[FCM] Token refreshed: $token');
