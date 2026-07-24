@@ -128,6 +128,13 @@ class WebviewController extends ChangeNotifier {
     if (WebViewService.isInternalUrl(request.url)) {
       return NavigationDecision.navigate;
     }
+    // Subframe requests (e.g. embedded YouTube iframes) should load in
+    // place; only top-level navigation to an external URL should be
+    // kicked out to the system browser. Blocking subframe loads causes
+    // embeds to repeatedly retry and appear to loop.
+    if (!request.isMainFrame) {
+      return NavigationDecision.navigate;
+    }
     // External URL: open in system browser and block in-app navigation.
     UrlLauncherService.openExternal(request.url);
     return NavigationDecision.prevent;

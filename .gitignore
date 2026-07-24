@@ -49,3 +49,4 @@ tt_mobile_app_key/KEYS
 /tt_mobile_app_key
 release-key.jks
 Keystore
+/android/app/.cxx

@@ -2,7 +2,7 @@ name: tt_mobile_app
 description: "Troop Tracker mobile app for the Florida Garrison."
 publish_to: 'none'
 
-version: 2.0.0+11
+version: 2.0.1+12
 
 environment:
   sdk: ^3.6.0
