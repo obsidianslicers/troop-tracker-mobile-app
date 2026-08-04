@@ -40,6 +40,13 @@ class WebviewController extends ChangeNotifier {
       load('$base$relative');
     });
 
+    // On iOS the FCM token often arrives after the webview's first page load
+    // (APNs round trip). Re-inject once the token is available so the web
+    // app's fcm-register.js still gets a chance to register it.
+    PushNotificationService.setTokenReadyHandler((token) {
+      if (!_isLoading) _injectFcmToken();
+    });
+
     _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(AppConfig.splashBackgroundColor)

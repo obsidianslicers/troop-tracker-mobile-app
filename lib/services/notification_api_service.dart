@@ -18,7 +18,13 @@ class NotificationApiService {
   static Future<List<PushNotification>> fetchAll() async {
     try {
       final response = await http.get(_uri('/api/push-notifications'), headers: _headers);
-      if (response.statusCode != 200) return [];
+      if (response.statusCode != 200) {
+        debugPrint(
+          '[NotificationApi] fetchAll non-200: ${response.statusCode} '
+          '(device likely not registered yet)',
+        );
+        return [];
+      }
       final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
       return data.map((e) => PushNotification.fromJson(e as Map<String, dynamic>)).toList();
     } catch (e) {
