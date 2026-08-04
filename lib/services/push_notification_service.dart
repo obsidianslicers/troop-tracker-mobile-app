@@ -5,12 +5,20 @@ class PushNotificationService {
   static String? currentToken;
   static void Function(String url)? _onDeepLink;
   static String? _pendingUrl;
+  static void Function(String token)? _onTokenReady;
 
   static void setDeepLinkHandler(void Function(String url) handler) {
     _onDeepLink = handler;
     if (_pendingUrl != null) {
       handler(_pendingUrl!);
       _pendingUrl = null;
+    }
+  }
+
+  static void setTokenReadyHandler(void Function(String token) handler) {
+    _onTokenReady = handler;
+    if (currentToken != null) {
+      handler(currentToken!);
     }
   }
 
@@ -29,6 +37,7 @@ class PushNotificationService {
     try {
       currentToken = await messaging.getToken();
       debugPrint('[FCM] Token: $currentToken');
+      if (currentToken != null) _onTokenReady?.call(currentToken!);
     } catch (e) {
       // On iOS the APNS token may not be registered yet at cold start
       // (common on simulators / first launch). Don't block app startup —
@@ -39,6 +48,7 @@ class PushNotificationService {
     messaging.onTokenRefresh.listen((token) {
       debugPrint('[FCM] Token refreshed: $token');
       currentToken = token;
+      _onTokenReady?.call(token);
     });
 
     // App opened by tapping a notification while in background.
