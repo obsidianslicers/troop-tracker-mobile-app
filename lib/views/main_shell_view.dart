@@ -43,8 +43,7 @@ class _MainShellViewState extends State<MainShellView> {
     _notificationsController = NotificationsController();
 
     FirebaseMessaging.onMessage.listen((_) {
-      if (_webviewController.isLoggedIn != false)
-        _notificationsController.refresh();
+      if (_webviewController.isLoggedIn != false) _notificationsController.refresh();
     });
   }
 
