@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
@@ -12,17 +14,20 @@ import 'main_shell_view.dart';
 ///   2. The logo and app name fade in.
 ///   3. After the minimum display duration, navigation pushes MainShellView.
 class SplashView extends StatefulWidget {
-  const SplashView({super.key});
+  /// [next] builds the screen that replaces the splash; tests pass a stand-in.
+  const SplashView({super.key, this.next, this.splashController});
+
+  final WidgetBuilder? next;
+  final SplashController? splashController;
 
   @override
   State<SplashView> createState() => _SplashViewState();
 }
 
-class _SplashViewState extends State<SplashView>
-    with SingleTickerProviderStateMixin {
+class _SplashViewState extends State<SplashView> with SingleTickerProviderStateMixin {
   late final AnimationController _animController;
   late final Animation<double> _fadeAnimation;
-  final _splashController = SplashController();
+  late final SplashController _splashController = widget.splashController ?? SplashController();
 
   @override
   void initState() {
@@ -39,21 +44,27 @@ class _SplashViewState extends State<SplashView>
       parent: _animController,
       curve: Curves.easeIn,
     );
-    _animController.forward();
+    unawaited(_animController.forward());
 
-    _splashController.waitForReady().then((_) {
-      if (!mounted) return;
+    unawaited(_showNextWhenReady());
+  }
+
+  Future<void> _showNextWhenReady() async {
+    await _splashController.waitForReady();
+    if (!mounted) return;
+    final next = widget.next ?? (_) => const MainShellView();
+    unawaited(
       Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (_, animation, __) => const MainShellView(),
+        PageRouteBuilder<void>(
+          pageBuilder: (context, animation, _) => next(context),
           transitionsBuilder: (_, animation, __, child) => FadeTransition(
             opacity: animation,
             child: child,
           ),
           transitionDuration: const Duration(milliseconds: 400),
         ),
-      );
-    });
+      ),
+    );
   }
 
   @override

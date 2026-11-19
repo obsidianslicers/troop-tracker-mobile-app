@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
@@ -25,7 +27,7 @@ class _NotificationsViewState extends State<NotificationsView> {
   @override
   void initState() {
     super.initState();
-    if (widget.webviewController.isLoggedIn != false) widget.controller.refresh();
+    if (widget.webviewController.isLoggedIn != false) unawaited(widget.controller.refresh());
   }
 
   @override
@@ -55,19 +57,16 @@ class _NotificationsViewState extends State<NotificationsView> {
               Expanded(
                 child: ListView.separated(
                   itemCount: ctrl.notifications.length,
-                  separatorBuilder: (_, __) =>
-                      const Divider(height: 1, indent: 16, endIndent: 16),
+                  separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
                   itemBuilder: (context, index) {
                     final notification = ctrl.notifications[index];
                     return _NotificationTile(
                       notification: notification,
                       onTap: () async {
                         await ctrl.markRead(notification);
-                        final base = AppConfig.trackerUrl.replaceAll(RegExp(r'/$'), '');
-                        final path = notification.url.startsWith('/')
-                            ? notification.url
-                            : '/${notification.url}';
-                        widget.webviewController.load('$base$path');
+                        unawaited(
+                          widget.webviewController.load(AppConfig.urlFor(notification.url)),
+                        );
                         widget.onNavigateToTracker();
                       },
                     );
@@ -114,7 +113,7 @@ class _Toolbar extends StatelessWidget {
                   ],
                 ),
               );
-              if (confirm == true) onClear();
+              if (confirm == true) await onClear();
             },
           ),
         ],
@@ -136,18 +135,13 @@ class _NotificationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(
-        notification.isUnread
-            ? Icons.notifications_rounded
-            : Icons.notifications_none_rounded,
-        color: notification.isUnread
-            ? Theme.of(context).colorScheme.primary
-            : Colors.grey,
+        notification.isUnread ? Icons.notifications_rounded : Icons.notifications_none_rounded,
+        color: notification.isUnread ? Theme.of(context).colorScheme.primary : Colors.grey,
       ),
       title: Text(
         notification.title,
         style: TextStyle(
-          fontWeight:
-              notification.isUnread ? FontWeight.bold : FontWeight.normal,
+          fontWeight: notification.isUnread ? FontWeight.bold : FontWeight.normal,
         ),
       ),
       subtitle: Text(notification.body),
@@ -182,10 +176,7 @@ class _SignInPrompt extends StatelessWidget {
           const SizedBox(height: 20),
           const Text(
             'Sign in to view notifications',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.white70),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.white70),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -213,15 +204,11 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.notifications_none_rounded,
-              size: 72, color: Colors.white24),
+          const Icon(Icons.notifications_none_rounded, size: 72, color: Colors.white24),
           const SizedBox(height: 20),
           const Text(
             'No notifications yet',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.white70),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.white70),
           ),
           const SizedBox(height: 8),
           const Text(

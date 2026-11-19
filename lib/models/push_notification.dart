@@ -1,3 +1,5 @@
+/// One entry in the trooper's notification inbox, as the tracker's
+/// `/api/push-notifications` endpoint returns it.
 class PushNotification {
   final String id;
   final String title;
@@ -18,13 +20,25 @@ class PushNotification {
   bool get isUnread => readAt == null;
 
   factory PushNotification.fromJson(Map<String, dynamic> json) {
+    final readAt = json['read_at'] as String?;
     return PushNotification(
       id: json['id'] as String,
       title: json['title'] as String,
       body: json['body'] as String,
       url: json['url'] as String,
-      readAt: json['read_at'] != null ? DateTime.parse(json['read_at'] as String) : null,
+      readAt: readAt != null ? DateTime.parse(readAt) : null,
       createdAt: DateTime.parse(json['created_at'] as String),
+    );
+  }
+
+  PushNotification copyWith({DateTime? readAt}) {
+    return PushNotification(
+      id: id,
+      title: title,
+      body: body,
+      url: url,
+      readAt: readAt ?? this.readAt,
+      createdAt: createdAt,
     );
   }
 }

@@ -30,9 +30,7 @@ class RetryErrorPanel extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              message.isNotEmpty
-                  ? message
-                  : 'Check your internet connection and try again.',
+              message.isNotEmpty ? message : 'Check your internet connection and try again.',
               style: const TextStyle(color: Colors.white54, height: 1.5),
               textAlign: TextAlign.center,
             ),

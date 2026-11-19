@@ -1,43 +1,47 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
-class PushNotificationService {
+/// Firebase Cloud Messaging setup: permission, the device token, and routing a
+/// tapped notification to its page in the WebView.
+abstract final class PushNotificationService {
   static String? currentToken;
   static void Function(String url)? _onDeepLink;
   static String? _pendingUrl;
   static void Function(String token)? _onTokenReady;
 
+  /// Called with a notification's URL when the user taps it. A tap that
+  /// launched the app before the WebView was ready is delivered here at once.
   static void setDeepLinkHandler(void Function(String url) handler) {
     _onDeepLink = handler;
-    if (_pendingUrl != null) {
-      handler(_pendingUrl!);
+    final pending = _pendingUrl;
+    if (pending != null) {
       _pendingUrl = null;
+      handler(pending);
     }
   }
 
+  /// Called with the FCM token whenever it becomes available or changes.
   static void setTokenReadyHandler(void Function(String token) handler) {
     _onTokenReady = handler;
-    if (currentToken != null) {
-      handler(currentToken!);
-    }
+    final token = currentToken;
+    if (token != null) handler(token);
   }
 
-  static Future<void> initialize() async {
-    final messaging = FirebaseMessaging.instance;
+  /// [messaging] and [openedApp] default to Firebase; tests pass fakes.
+  static Future<void> initialize({
+    FirebaseMessaging? messaging,
+    Stream<RemoteMessage>? openedApp,
+  }) async {
+    final fcm = messaging ?? FirebaseMessaging.instance;
 
-    final settings = await messaging.requestPermission(alert: true, badge: true, sound: true);
+    final settings = await fcm.requestPermission(alert: true, badge: true, sound: true);
     debugPrint('[FCM] Permission status: ${settings.authorizationStatus}');
 
-    await messaging.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await fcm.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
 
     try {
-      currentToken = await messaging.getToken();
+      _setToken(await fcm.getToken());
       debugPrint('[FCM] Token: $currentToken');
-      if (currentToken != null) _onTokenReady?.call(currentToken!);
     } catch (e) {
       // On iOS the APNS token may not be registered yet at cold start
       // (common on simulators / first launch). Don't block app startup —
@@ -45,30 +49,46 @@ class PushNotificationService {
       debugPrint('[FCM] getToken failed, will retry via onTokenRefresh: $e');
     }
 
-    messaging.onTokenRefresh.listen((token) {
+    fcm.onTokenRefresh.listen((token) {
       debugPrint('[FCM] Token refreshed: $token');
-      currentToken = token;
-      _onTokenReady?.call(token);
+      _setToken(token);
     });
 
     // App opened by tapping a notification while in background.
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+    (openedApp ?? FirebaseMessaging.onMessageOpenedApp).listen(handleMessage);
 
     // App launched from a terminated state by tapping a notification.
-    // _onDeepLink is not set yet here — _handleMessage stores url in _pendingUrl
+    // _onDeepLink is not set yet here — handleMessage stores the url in _pendingUrl
     // and setDeepLinkHandler() flushes it once the WebView is ready.
-    final initialMessage = await messaging.getInitialMessage();
-    if (initialMessage != null) _handleMessage(initialMessage);
+    final initialMessage = await fcm.getInitialMessage();
+    if (initialMessage != null) handleMessage(initialMessage);
   }
 
-  static void _handleMessage(RemoteMessage message) {
+  /// Routes a tapped notification's `url` data to the deep link handler.
+  @visibleForTesting
+  static void handleMessage(RemoteMessage message) {
     final url = message.data['url'] as String?;
     debugPrint('[FCM] notification tapped, url: $url');
     if (url == null) return;
-    if (_onDeepLink != null) {
-      _onDeepLink!(url);
+    final onDeepLink = _onDeepLink;
+    if (onDeepLink != null) {
+      onDeepLink(url);
     } else {
       _pendingUrl = url;
     }
+  }
+
+  /// Forgets the token, handlers and any pending deep link.
+  @visibleForTesting
+  static void reset() {
+    currentToken = null;
+    _onDeepLink = null;
+    _pendingUrl = null;
+    _onTokenReady = null;
+  }
+
+  static void _setToken(String? token) {
+    currentToken = token;
+    if (token != null) _onTokenReady?.call(token);
   }
 }

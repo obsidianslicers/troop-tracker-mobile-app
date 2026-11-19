@@ -22,6 +22,5 @@ class SettingsController {
   }
 
   /// Opens the tracker URL in the system browser.
-  Future<void> openInBrowser() =>
-      UrlLauncherService.openExternal(AppConfig.trackerUrl);
+  Future<void> openInBrowser() => UrlLauncherService.openExternal(AppConfig.trackerUrl);
 }

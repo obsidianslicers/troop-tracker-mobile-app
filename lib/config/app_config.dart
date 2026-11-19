@@ -3,17 +3,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Single source of truth for all app-wide configuration.
 /// Change the URL, colors, or name here — nowhere else.
-class AppConfig {
-  AppConfig._();
-
+abstract final class AppConfig {
   static const String appName = 'Troop Tracker';
 
   // The Tracker site loaded in the WebView.
   // Set TRACKER_URL in .env (copy .env.example → .env and edit).
   // Physical device against local server: use your Mac's LAN IP, e.g. http://192.168.1.x:8000/
   // Android emulator: http://10.0.2.2:8000/
-  static String get trackerUrl =>
-      dotenv.env['TRACKER_URL'] ?? 'https://tracker.fl501st.com/';
+  static String get trackerUrl => dotenv.env['TRACKER_URL'] ?? 'https://tracker.fl501st.com/';
 
   // Derived from trackerUrl — no need to change this manually.
   // "test.fl501st.com" → "fl501st.com", "localhost" → "localhost", "192.168.x.x" → the IP.
@@ -23,26 +20,31 @@ class AppConfig {
       return host;
     }
     final segments = host.split('.');
-    return segments.length >= 2
-        ? segments.sublist(segments.length - 2).join('.')
-        : host;
+    return segments.length >= 2 ? segments.sublist(segments.length - 2).join('.') : host;
   }
 
   // Extra domains to keep inside the WebView, comma-separated in INTERNAL_DOMAINS
   // (e.g. the garrison's site and forum, so their links stay in the app during local
   // dev, when the tracker runs on localhost).
-  static Set<String> get extraInternalDomains =>
-      (dotenv.env['INTERNAL_DOMAINS'] ?? '')
-          .split(',')
-          .map((domain) => domain.trim().toLowerCase())
-          .where((domain) => domain.isNotEmpty)
-          .toSet();
+  static Set<String> get extraInternalDomains => (dotenv.env['INTERNAL_DOMAINS'] ?? '')
+      .split(',')
+      .map((domain) => domain.trim().toLowerCase())
+      .where((domain) => domain.isNotEmpty)
+      .toSet();
 
   // All domains that should stay inside the WebView.
   static Set<String> get internalDomains => {
         trackerDomain,
         ...extraInternalDomains,
       };
+
+  /// The full tracker URL for [path], which may or may not start with a slash.
+  /// Used for deep links and notification taps, e.g. "/events/42".
+  static String urlFor(String path) {
+    final base = trackerUrl.replaceAll(RegExp(r'/$'), '');
+    final relative = path.startsWith('/') ? path : '/$path';
+    return '$base$relative';
+  }
 
   // Dark navy — used for splash background and WebView background
   static const Color splashBackgroundColor = Color(0xFF00131F);

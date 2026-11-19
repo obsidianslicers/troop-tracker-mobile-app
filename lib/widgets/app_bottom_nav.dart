@@ -27,16 +27,12 @@ class AppBottomNav extends StatelessWidget {
         NavigationDestination(
           icon: Badge(
             isLabelVisible: unreadNotificationCount > 0,
-            label: Text(unreadNotificationCount > 99
-                ? '99+'
-                : '$unreadNotificationCount'),
+            label: Text(unreadNotificationCount > 99 ? '99+' : '$unreadNotificationCount'),
             child: const Icon(Icons.notifications_outlined),
           ),
           selectedIcon: Badge(
             isLabelVisible: unreadNotificationCount > 0,
-            label: Text(unreadNotificationCount > 99
-                ? '99+'
-                : '$unreadNotificationCount'),
+            label: Text(unreadNotificationCount > 99 ? '99+' : '$unreadNotificationCount'),
             child: const Icon(Icons.notifications),
           ),
           label: 'Notifications',

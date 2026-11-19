@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/webview_controller.dart';
 import '../config/app_config.dart';
+import '../controllers/webview_controller.dart';
 import '../services/url_launcher_service.dart';
 import '../widgets/retry_error_panel.dart';
 
@@ -18,8 +18,7 @@ class ErrorView extends StatelessWidget {
       body: RetryErrorPanel(
         message: controller.errorMessage,
         onRetry: controller.reload,
-        onOpenInBrowser: () =>
-            UrlLauncherService.openExternal(AppConfig.trackerUrl),
+        onOpenInBrowser: () => UrlLauncherService.openExternal(AppConfig.trackerUrl),
       ),
     );
   }

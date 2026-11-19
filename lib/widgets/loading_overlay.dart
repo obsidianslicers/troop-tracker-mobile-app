@@ -19,8 +19,7 @@ class LoadingOverlay extends StatefulWidget {
   State<LoadingOverlay> createState() => _LoadingOverlayState();
 }
 
-class _LoadingOverlayState extends State<LoadingOverlay>
-    with SingleTickerProviderStateMixin {
+class _LoadingOverlayState extends State<LoadingOverlay> with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnim;
 
@@ -48,8 +47,7 @@ class _LoadingOverlayState extends State<LoadingOverlay>
     if (!widget.isVisible) return const SizedBox.shrink();
 
     // Use a minimum visual width so the bar is always visible even at 0%
-    final fillFraction =
-        widget.progress > 0.02 ? widget.progress : 0.02;
+    final fillFraction = widget.progress > 0.02 ? widget.progress : 0.02;
 
     return AnimatedBuilder(
       animation: _pulseAnim,
@@ -91,13 +89,13 @@ class _LoadingOverlayState extends State<LoadingOverlay>
                       boxShadow: [
                         // Core tight glow at the tip
                         BoxShadow(
-                          color: const Color(0xFF66CCFF).withValues(alpha:0.95),
+                          color: const Color(0xFF66CCFF).withValues(alpha: 0.95),
                           blurRadius: innerGlow,
                           spreadRadius: 0,
                         ),
                         // Wide ambient glow
                         BoxShadow(
-                          color: const Color(0xFF0099FF).withValues(alpha:0.55),
+                          color: const Color(0xFF0099FF).withValues(alpha: 0.55),
                           blurRadius: outerGlow,
                           spreadRadius: 1,
                         ),
@@ -116,12 +114,12 @@ class _LoadingOverlayState extends State<LoadingOverlay>
                         gradient: LinearGradient(
                           colors: [
                             Colors.transparent,
-                            Colors.white.withValues(alpha:0.6 + _pulseAnim.value * 0.4),
+                            Colors.white.withValues(alpha: 0.6 + _pulseAnim.value * 0.4),
                           ],
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.white.withValues(alpha:0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                             blurRadius: innerGlow * 1.5,
                             spreadRadius: 1,
                           ),

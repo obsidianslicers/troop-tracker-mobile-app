@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +20,18 @@ import 'tracker_view.dart';
 /// (which renders it) and SettingsView (which can clear its cache).
 /// IndexedStack keeps the WebView alive when the user switches tabs.
 class MainShellView extends StatefulWidget {
-  const MainShellView({super.key});
+  /// The controllers and the foreground message stream default to the real
+  /// ones; tests pass their own. The shell disposes the controllers either way.
+  const MainShellView({
+    super.key,
+    this.webviewController,
+    this.notificationsController,
+    this.foregroundMessages,
+  });
+
+  final WebviewController? webviewController;
+  final NotificationsController? notificationsController;
+  final Stream<RemoteMessage>? foregroundMessages;
 
   @override
   State<MainShellView> createState() => _MainShellViewState();
@@ -28,6 +41,7 @@ class _MainShellViewState extends State<MainShellView> {
   int _currentIndex = 0;
   late final WebviewController _webviewController;
   late final NotificationsController _notificationsController;
+  late final StreamSubscription<RemoteMessage> _foregroundMessages;
   bool? _lastKnownLoggedIn;
 
   static const _tabTitles = ['Troop Tracker', 'Notifications', 'Settings'];
@@ -36,19 +50,21 @@ class _MainShellViewState extends State<MainShellView> {
   void initState() {
     super.initState();
 
-    _webviewController = WebviewController();
+    _webviewController = widget.webviewController ?? WebviewController();
     _webviewController.addListener(_onWebviewChanged);
     _webviewController.initialize();
 
-    _notificationsController = NotificationsController();
+    _notificationsController = widget.notificationsController ?? NotificationsController();
 
-    FirebaseMessaging.onMessage.listen((_) {
-      if (_webviewController.isLoggedIn != false) _notificationsController.refresh();
-    });
+    // A push that arrives while the app is open adds to the inbox.
+    _foregroundMessages = (widget.foregroundMessages ?? FirebaseMessaging.onMessage).listen(
+      (_) => _refreshNotificationsIfSignedIn(),
+    );
   }
 
   @override
   void dispose() {
+    unawaited(_foregroundMessages.cancel());
     _webviewController.removeListener(_onWebviewChanged);
     _webviewController.dispose();
     _notificationsController.dispose();
@@ -58,10 +74,14 @@ class _MainShellViewState extends State<MainShellView> {
   void _onWebviewChanged() {
     final isLoggedIn = _webviewController.isLoggedIn;
     if (_lastKnownLoggedIn == true && isLoggedIn == false) {
-      _notificationsController.clearForLogout();
+      unawaited(_notificationsController.clearForLogout());
     }
     _lastKnownLoggedIn = isLoggedIn;
     if (mounted) setState(() {});
+  }
+
+  void _refreshNotificationsIfSignedIn() {
+    if (_webviewController.isLoggedIn != false) unawaited(_notificationsController.refresh());
   }
 
   AppBar _buildAppBar() {
@@ -90,13 +110,12 @@ class _MainShellViewState extends State<MainShellView> {
           IconButton(
             icon: const Icon(Icons.home_rounded),
             tooltip: 'Home',
-            onPressed: () => _webviewController.load(AppConfig.trackerUrl),
+            onPressed: () => unawaited(_webviewController.load(AppConfig.trackerUrl)),
           ),
           IconButton(
             icon: const Icon(Icons.open_in_browser_rounded),
             tooltip: 'Open in Browser',
-            onPressed: () =>
-                UrlLauncherService.openExternal(AppConfig.trackerUrl),
+            onPressed: () => unawaited(UrlLauncherService.openExternal(AppConfig.trackerUrl)),
           ),
         ],
       ],
@@ -161,14 +180,11 @@ class _MainShellViewState extends State<MainShellView> {
         listenable: _notificationsController,
         builder: (context, _) => AppBottomNav(
           currentIndex: _currentIndex,
-          unreadNotificationCount: _webviewController.isLoggedIn == false
-              ? 0
-              : _notificationsController.unreadCount,
+          unreadNotificationCount:
+              _webviewController.isLoggedIn == false ? 0 : _notificationsController.unreadCount,
           onTap: (index) {
             setState(() => _currentIndex = index);
-            if (index == 1 && _webviewController.isLoggedIn != false) {
-              _notificationsController.refresh();
-            }
+            if (index == 1) _refreshNotificationsIfSignedIn();
           },
         ),
       ),

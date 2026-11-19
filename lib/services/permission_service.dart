@@ -2,9 +2,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 /// Handles runtime permission requests for camera and photo library access.
 /// These permissions are required when the user uploads a file via the WebView.
-class PermissionService {
-  PermissionService._();
-
+abstract final class PermissionService {
   /// Requests camera permission. Returns true if granted.
   static Future<bool> requestCamera() async {
     final status = await Permission.camera.request();

@@ -1,4 +1,4 @@
-import 'dart:io' show Platform;
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -34,11 +34,7 @@ class WebviewController extends ChangeNotifier {
   /// Sets up the WebViewController and loads the tracker URL.
   /// Must be called once by MainShellView.initState().
   void initialize() {
-    PushNotificationService.setDeepLinkHandler((path) {
-      final base = AppConfig.trackerUrl.replaceAll(RegExp(r'/$'), '');
-      final relative = path.startsWith('/') ? path : '/$path';
-      load('$base$relative');
-    });
+    PushNotificationService.setDeepLinkHandler((path) => unawaited(load(AppConfig.urlFor(path))));
 
     // On iOS the FCM token often arrives after the webview's first page load
     // (APNs round trip). Re-inject once the token is available so the web
@@ -78,7 +74,7 @@ class WebviewController extends ChangeNotifier {
     _isLoading = false;
     _overrideWindowOpen();
     _injectFcmToken();
-    _checkAuthState();
+    unawaited(_checkAuthState());
     notifyListeners();
   }
 
@@ -101,17 +97,26 @@ class WebviewController extends ChangeNotifier {
     final token = PushNotificationService.currentToken;
     debugPrint('[FCM] _injectFcmToken called, token: $token');
     if (token == null) return;
-    _webViewController.runJavaScript(
-      'window.__fcmToken = "$token";'
-      'if (typeof window.__onFcmTokenReady === "function") window.__onFcmTokenReady("$token");',
-    ).catchError((e) => debugPrint('[FCM] JS injection error: $e'));
+    unawaited(
+      _webViewController
+          .runJavaScript(
+            'window.__fcmToken = "$token";'
+            'if (typeof window.__onFcmTokenReady === "function") '
+            'window.__onFcmTokenReady("$token");',
+          )
+          .catchError((Object e) => debugPrint('[FCM] JS injection error: $e')),
+    );
   }
 
   // Redirects window.open() into the same WebView so OAuth callbacks don't
   // escape to the system browser and lose the session cookie.
   void _overrideWindowOpen() {
-    _webViewController.runJavaScript(
-      'window.open = function(url) { if (url) window.location.href = url; return window; };',
+    unawaited(
+      _webViewController
+          .runJavaScript(
+            'window.open = function(url) { if (url) window.location.href = url; return window; };',
+          )
+          .catchError((Object e) => debugPrint('[WebView] window.open override error: $e')),
     );
   }
 
@@ -143,7 +148,7 @@ class WebviewController extends ChangeNotifier {
       return NavigationDecision.navigate;
     }
     // External URL: open in system browser and block in-app navigation.
-    UrlLauncherService.openExternal(request.url);
+    unawaited(UrlLauncherService.openExternal(request.url));
     return NavigationDecision.prevent;
   }
 
@@ -182,7 +187,7 @@ class WebviewController extends ChangeNotifier {
   // block authorization forms as a phishing countermeasure. Return a clean
   // mobile Chrome UA on Android; return null on iOS to keep the default Safari UA.
   String? _buildUserAgent() {
-    if (!Platform.isAndroid) return null;
+    if (defaultTargetPlatform != TargetPlatform.android) return null;
     return 'Mozilla/5.0 (Linux; Android 10; K) '
         'AppleWebKit/537.36 (KHTML, like Gecko) '
         'Chrome/124.0.0.0 Mobile Safari/537.36';
