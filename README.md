@@ -1,5 +1,7 @@
 # 501st Legion Troop Tracker Mobile App
 
+[![Code Style](https://github.com/obsidianslicers/troop-tracker-mobile-app/actions/workflows/code-style.yml/badge.svg)](https://github.com/obsidianslicers/troop-tracker-mobile-app/actions/workflows/code-style.yml) [![Tests](https://github.com/obsidianslicers/troop-tracker-mobile-app/actions/workflows/tests.yml/badge.svg)](https://github.com/obsidianslicers/troop-tracker-mobile-app/actions/workflows/tests.yml)
+
 A Flutter mobile app for the **501st Legion Florida Garrison** that wraps the
 [Troop Tracker](https://github.com/obsidianslicers/trooper-tracker) web app in a native shell.
 Requires a running instance of Troop Tracker — no XenForo installation needed.
@@ -16,7 +18,23 @@ Requires a running instance of Troop Tracker — no XenForo installation needed.
 - Full Troop Tracker web app loaded in an embedded WebView
 - Push notifications via Firebase Cloud Messaging
 - Deep-link routing into specific troop pages from notifications
-- Session persistence via Hive local storage
+- Native notification inbox with an unread badge on the app icon
+- Sign-in sessions kept by the WebView's cookies
+
+---
+
+## TL;DR for Collaborators
+
+- Flutter app (3.44.9) that shows the Troop Tracker web app in a WebView and adds push
+  notifications and a native inbox. Business logic lives in the tracker, not here.
+- Code is layered Services → Controllers → Views, with dependencies passed through
+  constructors so everything can be tested: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+- **Every change needs tests.** Unit and widget tests cover 100% of `lib/`, and e2e tests run the
+  real app on an Android emulator against a mock tracker: [docs/TESTING.md](docs/TESTING.md).
+- Before a PR: `flutter test --coverage && dart run tool/check_coverage.dart`, `dart format .`,
+  `flutter analyze`. Setup and conventions: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+- AI agents: [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md). Contributors:
+  [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
@@ -121,10 +139,26 @@ dart run flutter_launcher_icons
 
 ---
 
-## Architecture
+## Testing
 
-See [`ARCHITECTURE.md`](ARCHITECTURE.md) for a full breakdown of the layer structure, providers,
-routing, and testing strategy.
+```bash
+flutter test                                                  # unit and widget tests
+flutter test --coverage && dart run tool/check_coverage.dart  # 100% coverage gate
+flutter test integration_test                                 # e2e, on an emulator
+```
+
+The e2e tests need the mock tracker running; [docs/TESTING.md](docs/TESTING.md) has the steps.
+
+---
+
+## Documentation
+
+| Topic | File |
+|-------|------|
+| Architecture: layers, startup, how the app and web app talk | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Development setup, commands and coding conventions | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
+| Unit, widget and e2e tests | [docs/TESTING.md](docs/TESTING.md) |
+| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
 
 ---
 
