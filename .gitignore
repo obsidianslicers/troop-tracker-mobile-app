@@ -50,3 +50,6 @@ tt_mobile_app_key/KEYS
 release-key.jks
 Keystore
 /android/app/.cxx
+
+# Test coverage output
+/coverage/
