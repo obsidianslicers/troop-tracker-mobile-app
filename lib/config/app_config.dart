@@ -28,11 +28,20 @@ class AppConfig {
         : host;
   }
 
+  // Extra domains to keep inside the WebView, comma-separated in INTERNAL_DOMAINS
+  // (e.g. the garrison's site and forum, so their links stay in the app during local
+  // dev, when the tracker runs on localhost).
+  static Set<String> get extraInternalDomains =>
+      (dotenv.env['INTERNAL_DOMAINS'] ?? '')
+          .split(',')
+          .map((domain) => domain.trim().toLowerCase())
+          .where((domain) => domain.isNotEmpty)
+          .toSet();
+
   // All domains that should stay inside the WebView.
-  // fl501st.com is always internal so forum/site links don't open externally during local dev.
   static Set<String> get internalDomains => {
-        'fl501st.com',
         trackerDomain,
+        ...extraInternalDomains,
       };
 
   // Dark navy — used for splash background and WebView background

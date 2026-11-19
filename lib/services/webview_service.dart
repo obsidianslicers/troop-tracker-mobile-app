@@ -10,7 +10,10 @@ class WebViewService {
   static bool isInternalUrl(String url) {
     final uri = Uri.tryParse(url);
     if (uri == null) return false;
-    // Always keep fl501st.com and the active tracker domain inside the WebView.
-    return AppConfig.internalDomains.any((domain) => uri.host.endsWith(domain));
+    final host = uri.host.toLowerCase();
+    // The domain itself or a subdomain of it; a plain endsWith would also let
+    // a lookalike such as "evilfl501st.com" stay in the WebView (and get the FCM token).
+    return AppConfig.internalDomains
+        .any((domain) => host == domain || host.endsWith('.$domain'));
   }
 }

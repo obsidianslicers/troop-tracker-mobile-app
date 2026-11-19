@@ -77,6 +77,14 @@ Set `TRACKER_URL=http://localhost:8000/` in `.env`.
 For a physical device against a local server, use your Mac's LAN IP: `http://192.168.1.x:8000/`
 For Android emulator: `http://10.0.2.2:8000/`
 
+**Links that stay in the app:**
+Links to the tracker's own domain (and its subdomains) open inside the app; everything else
+opens in the phone's browser. To keep more domains in the app, such as your garrison's forum
+when the tracker runs on localhost, list them in `.env`:
+```
+INTERNAL_DOMAINS=fl501st.com,example.org
+```
+
 **CI / release builds:**
 Write a `.env` file from your CI secrets before building:
 ```bash
