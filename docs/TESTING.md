@@ -1,7 +1,7 @@
 # Testing
 
 **Every change ships with tests.** A pull request that adds or changes behavior adds or updates
-the tests for it, and CI fails when any line of `lib/` is left uncovered.
+the tests for it. There's no coverage percentage to hit; the coverage report shows what's untested.
 
 There are two kinds of tests:
 
@@ -18,7 +18,7 @@ There are two kinds of tests:
 cp .env.example .env              # once; .env is an asset, so tests need one
 flutter test                      # everything
 flutter test test/views/settings_view_test.dart   # one file
-flutter test --coverage && dart run tool/check_coverage.dart   # the CI coverage gate
+flutter test --coverage && dart run tool/coverage_report.dart  # what's untested
 ```
 
 ### Layout
@@ -56,9 +56,10 @@ flutter test --coverage && dart run tool/check_coverage.dart   # the CI coverage
 
 ### Coverage
 
-`tool/check_coverage.dart` reads `coverage/lcov.info` and fails unless line coverage is 100%
-and every file in `lib/` is loaded by some test. Two files are excluded, because unit tests can't
-reach them: `lib/main.dart` (covered by the e2e tests) and `lib/firebase_options.dart` (generated).
+`tool/coverage_report.dart` reads `coverage/lcov.info` and prints the line coverage, the
+uncovered lines of each file, and any `lib/` file no test loads. It never fails the build;
+use it to find untested code, not as a number to chase. Two files are left out, because unit
+tests can't reach them: `lib/main.dart` (covered by the e2e tests) and `lib/firebase_options.dart` (generated).
 Keep `main.dart` to the few lines that need a real device, and put everything else in `app.dart`.
 
 ---
@@ -102,8 +103,8 @@ cp .env.example .env                        # put your normal .env back afterwar
 
 `.github/workflows/tests.yml` runs on every pull request to `main`:
 
-- **Unit and widget tests**: `flutter test --coverage`, then the coverage gate. The coverage
-  summary is posted on the run's summary page.
+- **Unit and widget tests**: `flutter test --coverage`, then the coverage report, posted
+  on the run's summary page.
 - **E2E tests (Android emulator)**: builds the app, boots an API 30 emulator, starts the mock
   tracker, and runs `flutter test integration_test`. The mock tracker's log is uploaded when it
   fails.

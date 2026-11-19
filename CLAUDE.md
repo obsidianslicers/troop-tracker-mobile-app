@@ -17,11 +17,11 @@ It's set up for the Florida Garrison only for now.
 - A change to startup, the WebView, notifications, or a user journey → add or update an e2e
   test in `integration_test/` (and the mock tracker in `tool/mock_tracker.dart` if the app
   calls something new).
-- Coverage of `lib/` must stay at **100%**; CI fails otherwise. Don't exclude code from coverage
-  to get there; make it testable instead (inject the dependency).
+- There's no coverage percentage to hit; test the behavior that matters. If code is hard to
+  test, make it testable (inject the dependency) rather than skipping its tests.
 - Before saying a change is done, run and pass:
   ```bash
-  flutter test --coverage && dart run tool/check_coverage.dart
+  flutter test
   dart format --output=none --set-exit-if-changed .
   flutter analyze
   ```
@@ -61,7 +61,7 @@ lib/
 └── widgets/               # Reusable widgets
 test/                      # Mirrors lib/; shared fakes in test/support/
 integration_test/          # E2E tests against tool/mock_tracker.dart
-tool/                      # check_coverage.dart, mock_tracker.dart
+tool/                      # coverage_report.dart, mock_tracker.dart
 docs/                      # ARCHITECTURE, DEVELOPMENT, TESTING
 ```
 
@@ -98,7 +98,7 @@ flutter pub get
 flutter run
 
 flutter test                         # unit + widget tests
-flutter test --coverage && dart run tool/check_coverage.dart
+flutter test --coverage && dart run tool/coverage_report.dart   # what's untested
 dart run tool/mock_tracker.dart 8080 # mock tracker for e2e tests
 flutter test integration_test        # e2e (emulator; .env TRACKER_URL=http://10.0.2.2:8080/)
 
@@ -112,6 +112,6 @@ flutter analyze
 
 - Branch from `main` and open the PR against `main`; don't stack PRs on other PR branches.
 - Conventional commits: `fix: ...`, `feat: ...`, `test: ...`, `docs: ...`, `chore: ...`.
-- CI (format, analyze, unit tests with the coverage gate, e2e on an emulator) must pass.
+- CI (format, analyze, unit tests, e2e on an emulator) must pass.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).

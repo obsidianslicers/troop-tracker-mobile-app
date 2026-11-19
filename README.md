@@ -29,9 +29,9 @@ Requires a running instance of Troop Tracker — no XenForo installation needed.
   notifications and a native inbox. Business logic lives in the tracker, not here.
 - Code is layered Services → Controllers → Views, with dependencies passed through
   constructors so everything can be tested: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-- **Every change needs tests.** Unit and widget tests cover 100% of `lib/`, and e2e tests run the
+- **Every change needs tests.** Unit and widget tests cover the app's code, and e2e tests run the
   real app on an Android emulator against a mock tracker: [docs/TESTING.md](docs/TESTING.md).
-- Before a PR: `flutter test --coverage && dart run tool/check_coverage.dart`, `dart format .`,
+- Before a PR: `flutter test`, `dart format .`,
   `flutter analyze`. Setup and conventions: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 - AI agents: [CLAUDE.md](CLAUDE.md) and [AGENTS.md](AGENTS.md). Contributors:
   [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -143,7 +143,7 @@ dart run flutter_launcher_icons
 
 ```bash
 flutter test                                                  # unit and widget tests
-flutter test --coverage && dart run tool/check_coverage.dart  # 100% coverage gate
+flutter test --coverage && dart run tool/coverage_report.dart # coverage report
 flutter test integration_test                                 # e2e, on an emulator
 ```
 

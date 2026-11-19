@@ -14,7 +14,7 @@ flutter pub get                    # install dependencies
 flutter run                        # run on a device or emulator
 
 flutter test                       # unit and widget tests
-flutter test --coverage && dart run tool/check_coverage.dart   # coverage gate (100%)
+flutter test --coverage && dart run tool/coverage_report.dart   # coverage report
 flutter test integration_test      # e2e tests; see TESTING.md for the mock tracker
 
 dart format .                      # format (100-character lines)
@@ -26,7 +26,7 @@ dart run flutter_native_splash:create   # regenerate the native splash
 
 ## Before opening a pull request
 
-1. Tests for the change, and `flutter test --coverage && dart run tool/check_coverage.dart` passes.
+1. Tests for the change, and `flutter test` passes.
 2. `dart format .` leaves no changes and `flutter analyze` finds no issues.
 3. For a change to startup, the WebView, or notifications, the e2e tests pass on an emulator
    (CI runs them on every pull request).

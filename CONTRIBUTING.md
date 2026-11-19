@@ -20,7 +20,7 @@ Thanks for helping with the **Troop Tracker mobile app**. These guidelines match
    requests without tests for their changes won't be merged.
 5. Check it:
    ```bash
-   flutter test --coverage && dart run tool/check_coverage.dart
+   flutter test
    dart format --output=none --set-exit-if-changed .
    flutter analyze
    ```
@@ -38,5 +38,5 @@ For example: `fix(notifications): keep the badge after clearing the inbox (#42)`
 ## 4. Open a pull request
 
 Open it against **`main`** and write `Closes #<issue-number>` in the description. CI checks
-formatting, analysis, the unit and widget tests (100% coverage), and the e2e tests on an
+formatting, analysis, the unit and widget tests, and the e2e tests on an
 Android emulator; all must pass before review.

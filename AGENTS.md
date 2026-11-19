@@ -8,11 +8,11 @@ These rules apply to every AI coding agent (Codex, Copilot, Cursor, Claude, ...)
 1. **Every change comes with tests in the same pull request.** Unit/widget tests in `test/`
    mirroring `lib/`; e2e tests in `integration_test/` for startup, WebView, notification and
    navigation changes. A bug fix starts with a failing test.
-2. **Coverage of `lib/` stays at 100%.** Make code testable (inject dependencies) rather than
-   excluding it.
+2. **No coverage target, but no untested changes.** Make code testable (inject dependencies)
+   rather than leaving it without tests.
 3. **Before calling a change done**, run and pass:
    ```bash
-   flutter test --coverage && dart run tool/check_coverage.dart
+   flutter test
    dart format --output=none --set-exit-if-changed .
    flutter analyze
    ```

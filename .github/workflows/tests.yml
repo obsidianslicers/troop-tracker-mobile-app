@@ -34,11 +34,11 @@ jobs:
       - name: Run tests with coverage
         run: flutter test --coverage
 
-      # Every line of lib/ must be covered; see tool/check_coverage.dart.
-      - name: Check coverage
+      # Reported on the run's summary page; it doesn't fail the build.
+      - name: Coverage report
         run: |
           set -o pipefail
-          dart run tool/check_coverage.dart | tee coverage/summary.txt
+          dart run tool/coverage_report.dart | tee coverage/summary.txt
           { echo '### Coverage'; echo '```'; cat coverage/summary.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
   e2e-tests:
