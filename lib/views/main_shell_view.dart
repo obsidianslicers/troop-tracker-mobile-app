@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../config/app_config.dart';
 import '../controllers/notifications_controller.dart';
@@ -42,7 +43,8 @@ class _MainShellViewState extends State<MainShellView> {
     _notificationsController = NotificationsController();
 
     FirebaseMessaging.onMessage.listen((_) {
-      if (_webviewController.isLoggedIn != false) _notificationsController.refresh();
+      if (_webviewController.isLoggedIn != false)
+        _notificationsController.refresh();
     });
   }
 
@@ -104,10 +106,34 @@ class _MainShellViewState extends State<MainShellView> {
 
   void _switchToTracker() => setState(() => _currentIndex = 0);
 
+  // Back goes to the Tracker tab, then through WebView history, then closes
+  // the app. Popping this route instead would leave an empty navigator and a
+  // black screen, because MainShellView replaced the splash as the only route.
+  Future<void> _handleBack(bool didPop, Object? _) async {
+    if (didPop) return;
+    if (_currentIndex != 0) {
+      _switchToTracker();
+      return;
+    }
+    if (!_webviewController.hasError && await _webviewController.canGoBack()) {
+      await _webviewController.goBack();
+      return;
+    }
+    await SystemNavigator.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final showLoader = _currentIndex == 0 && _webviewController.isLoading;
 
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: _handleBack,
+      child: _buildScaffold(showLoader),
+    );
+  }
+
+  Scaffold _buildScaffold(bool showLoader) {
     return Scaffold(
       appBar: _buildAppBar(),
       body: Column(
