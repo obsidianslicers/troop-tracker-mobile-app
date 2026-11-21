@@ -110,6 +110,17 @@ void main() {
       expect(first, ['/events/1']);
       expect(second, isEmpty);
     });
+
+    test('takePendingUrl hands over a pending link only once', () {
+      PushNotificationService.handleMessage(tappedNotification('/events/1'));
+      final urls = <String>[];
+
+      expect(PushNotificationService.takePendingUrl(), '/events/1');
+      expect(PushNotificationService.takePendingUrl(), isNull);
+
+      PushNotificationService.setDeepLinkHandler(urls.add);
+      expect(urls, isEmpty);
+    });
   });
 
   test('setTokenReadyHandler gets a token that is already known', () {

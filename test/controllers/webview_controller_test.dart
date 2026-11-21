@@ -74,6 +74,16 @@ void main() {
       expect(webView().loadedUrls.last, 'https://tracker.example.org/events/42');
     });
 
+    test('opens a notification that launched the app instead of the home page', () {
+      // Tapping a notification while the app is closed: Firebase reports it
+      // during startup, before the main screen creates the WebView.
+      PushNotificationService.handleMessage(tappedNotification('/events/details/42'));
+
+      subject.initialize();
+
+      expect(webView().loadedUrls, ['https://tracker.example.org/events/details/42']);
+    });
+
     test('accepts console messages from the page', () {
       subject.initialize();
 

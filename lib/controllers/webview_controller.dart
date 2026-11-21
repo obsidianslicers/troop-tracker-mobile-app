@@ -31,10 +31,11 @@ class WebviewController extends ChangeNotifier {
   /// The underlying webview_flutter controller used by WebViewWidget.
   WebViewController get webViewController => _webViewController;
 
-  /// Sets up the WebViewController and loads the tracker URL.
+  /// Sets up the WebViewController and loads the tracker URL, or the page of
+  /// the notification that launched the app.
   /// Must be called once by MainShellView.initState().
   void initialize() {
-    PushNotificationService.setDeepLinkHandler((path) => unawaited(load(AppConfig.urlFor(path))));
+    final launchPath = PushNotificationService.takePendingUrl();
 
     // On iOS the FCM token often arrives after the webview's first page load
     // (APNs round trip). Re-inject once the token is available so the web
@@ -59,7 +60,13 @@ class WebviewController extends ChangeNotifier {
           onNavigationRequest: _onNavigationRequest,
         ),
       )
-      ..loadRequest(Uri.parse(AppConfig.trackerUrl));
+      ..loadRequest(
+        Uri.parse(launchPath == null ? AppConfig.trackerUrl : AppConfig.urlFor(launchPath)),
+      );
+
+    // Only once the WebView exists: a handler set earlier would replay a
+    // pending link into load() before there was anything to load it into.
+    PushNotificationService.setDeepLinkHandler((path) => unawaited(load(AppConfig.urlFor(path))));
   }
 
   void _onPageStarted(String url) {

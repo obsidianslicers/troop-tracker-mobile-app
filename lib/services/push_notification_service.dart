@@ -20,6 +20,14 @@ abstract final class PushNotificationService {
     }
   }
 
+  /// The URL of a notification tapped before a deep link handler was set,
+  /// such as the one that launched the app. Returns it only once.
+  static String? takePendingUrl() {
+    final pending = _pendingUrl;
+    _pendingUrl = null;
+    return pending;
+  }
+
   /// Called with the FCM token whenever it becomes available or changes.
   static void setTokenReadyHandler(void Function(String token) handler) {
     _onTokenReady = handler;
